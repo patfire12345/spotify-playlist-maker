@@ -1,29 +1,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import "./Home.css";
-import { buttonVariants, containerVariants } from "./variants";
+import "./Recommendation.css";
+import { containerVariants, buttonVariants } from "./variants";
 
-export const Home = (props) => {
+export const Recommendation = (props) => {
   return (
     <motion.div
-      className="home-container"
+      className="recommendation-container"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
       exit="exit"
     >
       <motion.div
-        className="home-start-button"
+        className="recommendation-button"
         variants={buttonVariants}
         whileHover="hover"
       >
+        {/* Temporary onClick for convenience, will delete later */}
         <Link
-          onClick={props.changeStart}
-          to="/maker"
+          onClick={() => props.selectionDone()}
+          to="/"
           style={{ textDecoration: "none" }}
         >
-          Start
+          Back to Home
         </Link>
       </motion.div>
     </motion.div>

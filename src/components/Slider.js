@@ -1,9 +1,16 @@
-import * as React from "react";
+import React, { useEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import "./Slider.css";
+import { containerVariants } from "./variants";
 
-export const Slider = () => {
+export const Slider = (props) => {
   const x = useMotionValue(0);
+  const redirectLimit = 300;
+  useEffect(() => {
+    x.onChange((latestX) => {
+      Math.abs(latestX) >= redirectLimit && props.selectionDone();
+    });
+  });
   const xInput = [-100, 0, 100];
   const background = useTransform(x, xInput, [
     "linear-gradient(180deg, #ff008c 0%, rgb(211, 9, 225) 100%)",
@@ -20,7 +27,14 @@ export const Slider = () => {
   const crossPathB = useTransform(x, [-50, -100], [0, 1]);
 
   return (
-    <motion.div className="example-container" style={{ background }}>
+    <motion.div
+      className="example-container"
+      style={{ background }}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
       <motion.div
         className="box"
         style={{ x }}
@@ -28,13 +42,6 @@ export const Slider = () => {
         dragConstraints={{ left: 0, right: 0 }}
       >
         <svg className="progress-icon" viewBox="0 0 50 50">
-          {/* <motion.path
-            fill="none"
-            strokeWidth="2"
-            stroke={color}
-            d="M 0, 20 a 20, 20 0 1,0 40,0 a 20, 20 0 1,0 -40,0"
-            style={{ translateX: 5, translateY: 5 }}
-          /> */}
           <motion.path
             fill="none"
             strokeWidth="2"

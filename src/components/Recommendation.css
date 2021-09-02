@@ -1,0 +1,14 @@
+.recommendation-container {
+  height: 100vh;
+  width: 100vw;
+  background-image: linear-gradient(180deg, #7700ff 0%, rgb(68, 0, 255) 100%);
+}
+
+.recommendation-button {
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
