@@ -1,0 +1,31 @@
+body {
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.example-container {
+  width: 100vw;
+  height: 100vh;
+}
+
+.box {
+  background: white;
+  border-radius: 30px;
+  width: 25vw;
+  height: 100vh;
+  position: absolute;
+  /* top: calc(50% - 150px / 2); */
+  left: calc(50% - 50vh / 2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-icon {
+  width: 80%;
+  height: 80%;
+}
