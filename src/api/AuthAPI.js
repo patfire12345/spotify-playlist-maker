@@ -7,7 +7,9 @@ let expirationDate = null;
 export const getToken = async () => {
     const expired = isTokenExpired(expirationDate);
     if (expired) {
-        accessToken = await refreshToken();
+        const { access_token, expires_in } = await refreshToken();
+        accessToken = access_token;
+        setTokenExpiration(expires_in);
     }
 
     return accessToken;
@@ -18,7 +20,9 @@ export const setToken = async (token) => {
 };
 
 export const setTokenExpiration = (expireIn) => {
-    expirationDate = Date.now() * expireIn;
+    if (expireIn) {
+        expirationDate = Date.now() * expireIn;
+    }
 };
 
 export const logout = async () => {
@@ -35,8 +39,7 @@ export const refreshToken = async () => {
         );
 
         if (!response.ok) throw await RequestError.parseResponse(response);
-        const { access_token } = await response.json();
-        return access_token;
+        return await response.json();
     } catch (error) {
         console.log(error);
         return null;
