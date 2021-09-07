@@ -1,16 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import './Slider.css';
 import { containerVariants } from './variants';
 
 export const Slider = (props) => {
     const x = useMotionValue(0);
-    const redirectLimit = 300;
-    useEffect(() => {
-        x.onChange((latestX) => {
-            Math.abs(latestX) >= redirectLimit && props.selectionDone();
-        });
-    });
     const xInput = [-100, 0, 100];
     const background = useTransform(x, xInput, [
         'linear-gradient(180deg, #ff008c 0%, rgb(211, 9, 225) 100%)',
@@ -26,6 +20,23 @@ export const Slider = (props) => {
     const crossPathA = useTransform(x, [-10, -55], [0, 1]);
     const crossPathB = useTransform(x, [-50, -100], [0, 1]);
 
+    const [successOrFailText, setSuccessOrFailText] = useState('');
+
+    const redirectLimit = 150;
+    useEffect(() => {
+        x.onChange((latestX) => {
+            Math.abs(latestX) >= redirectLimit &&
+                latestX > 0 &&
+                setSuccessOrFailText('Success');
+            Math.abs(latestX) >= redirectLimit &&
+                latestX < 0 &&
+                setSuccessOrFailText('Failure');
+            setTimeout(() => setSuccessOrFailText(''), 2000);
+        });
+    });
+
+    const dummyData = ['1', '2', '3', '4'];
+
     return (
         <motion.div
             className='example-container'
@@ -34,6 +45,9 @@ export const Slider = (props) => {
             initial='hidden'
             animate='visible'
             exit='exit'>
+            <div className='flex justify-center pt-3 text-3xl'>
+                {successOrFailText}
+            </div>
             <motion.div
                 className='box'
                 style={{ x }}
@@ -66,6 +80,7 @@ export const Slider = (props) => {
                     />
                 </svg>
             </motion.div>
+            <div>Hello</div>
         </motion.div>
     );
 };
