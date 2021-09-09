@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import './Slider.css';
 import { containerVariants } from './variants';
 
-export const Slider = (props) => {
+const Slider = (props) => {
     const x = useMotionValue(0);
     const xInput = [-100, 0, 100];
     const background = useTransform(x, xInput, [
@@ -22,20 +22,36 @@ export const Slider = (props) => {
 
     const [successOrFailText, setSuccessOrFailText] = useState('');
 
+    const swipe = (result, song, setPoint) => {
+        setSuccessOrFailText(result);
+        setDummyData([...dummyData, song]);
+        setIsAboveRedirectLimit(true);
+
+        setTimeout(() => {
+            setSuccessOrFailText('');
+        }, 2000);
+    };
+
     const redirectLimit = 150;
     useEffect(() => {
         x.onChange((latestX) => {
-            Math.abs(latestX) >= redirectLimit &&
-                latestX > 0 &&
-                setSuccessOrFailText('Success');
-            Math.abs(latestX) >= redirectLimit &&
-                latestX < 0 &&
-                setSuccessOrFailText('Failure');
-            setTimeout(() => setSuccessOrFailText(''), 2000);
+            latestX >= redirectLimit &&
+                !isAboveRedirectLimit &&
+                !isDragging &&
+                swipe('Success', '1');
+
+            latestX <= -redirectLimit &&
+                !isAboveRedirectLimit &&
+                !isDragging &&
+                swipe('Failure', '0');
+
+            Math.abs(latestX) < redirectLimit && setIsAboveRedirectLimit(false);
         });
     });
 
-    const dummyData = ['1', '2', '3', '4'];
+    const [dummyData, setDummyData] = useState([]);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isAboveRedirectLimit, setIsAboveRedirectLimit] = useState(false);
 
     return (
         <motion.div
@@ -48,39 +64,96 @@ export const Slider = (props) => {
             <div className='flex justify-center pt-3 text-3xl'>
                 {successOrFailText}
             </div>
-            <motion.div
-                className='box'
-                style={{ x }}
-                drag='x'
-                dragConstraints={{ left: 0, right: 0 }}>
-                <svg className='progress-icon' viewBox='0 0 50 50'>
-                    <motion.path
-                        fill='none'
-                        strokeWidth='2'
-                        stroke={color}
-                        d='M14,26 L 22,33 L 35,16'
-                        strokeDasharray='0 1'
-                        style={{ pathLength: tickPath }}
-                    />
-                    <motion.path
-                        fill='none'
-                        strokeWidth='2'
-                        stroke={color}
-                        d='M17,17 L33,33'
-                        strokeDasharray='0 1'
-                        style={{ pathLength: crossPathA }}
-                    />
-                    <motion.path
-                        fill='none'
-                        strokeWidth='2'
-                        stroke={color}
-                        d='M33,17 L17,33'
-                        strokeDasharray='0 1'
-                        style={{ pathLength: crossPathB }}
-                    />
-                </svg>
-            </motion.div>
-            <div>Hello</div>
+            <div className=''>
+                <motion.div
+                    className='box relative'
+                    style={{ x }}
+                    drag='x'
+                    dragConstraints={{ left: 0, right: 0 }}
+                    onDragStart={() => setIsDragging(true)}
+                    onDragEnd={() => setIsDragging(false)}>
+                    <svg className='progress-icon' viewBox='0 0 50 50'>
+                        <motion.path
+                            fill='none'
+                            strokeWidth='2'
+                            stroke={color}
+                            d='M14,26 L 22,33 L 35,16'
+                            strokeDasharray='0 1'
+                            style={{ pathLength: tickPath }}
+                        />
+                        <motion.path
+                            fill='none'
+                            strokeWidth='2'
+                            stroke={color}
+                            d='M17,17 L33,33'
+                            strokeDasharray='0 1'
+                            style={{ pathLength: crossPathA }}
+                        />
+                        <motion.path
+                            fill='none'
+                            strokeWidth='2'
+                            stroke={color}
+                            d='M33,17 L17,33'
+                            strokeDasharray='0 1'
+                            style={{ pathLength: crossPathB }}
+                        />
+                    </svg>
+                    <div className='absolute bottom-5 right-12'>
+                        <svg
+                            onClick={() => {
+                                x.set(150);
+                                setTimeout(() => {
+                                    x.set(0);
+                                    setSuccessOrFailText('');
+                                }, 2000);
+                            }}
+                            xmlns='http://www.w3.org/2000/svg'
+                            class='h-12 w-12'
+                            fill='none'
+                            viewBox='0 0 24 24'
+                            stroke='currentColor'>
+                            <path
+                                stroke-linecap='round'
+                                stroke-linejoin='round'
+                                stroke-width='2'
+                                d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+                            />
+                        </svg>
+                    </div>
+                    <div className='absolute bottom-5 left-12'>
+                        <svg
+                            onClick={() => {
+                                x.set(-150);
+                                setTimeout(() => {
+                                    x.set(0);
+                                    setSuccessOrFailText('');
+                                }, 2000);
+                            }}
+                            xmlns='http://www.w3.org/2000/svg'
+                            class='h-12 w-12'
+                            fill='none'
+                            viewBox='0 0 24 24'
+                            stroke='currentColor'>
+                            <path
+                                stroke-linecap='round'
+                                stroke-linejoin='round'
+                                stroke-width='2'
+                                d='M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
+                            />
+                        </svg>
+                    </div>
+                </motion.div>
+            </div>
+            <div className='absolute right-20 inset-y-2.5'>
+                <table className=''>
+                    <th>Playlist</th>
+                    {dummyData.map((item) => {
+                        return <tr>{item}</tr>;
+                    })}
+                </table>
+            </div>
         </motion.div>
     );
 };
+
+export default Slider;

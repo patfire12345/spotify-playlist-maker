@@ -2,7 +2,7 @@ import React from 'react';
 import { Switch, withRouter } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import AuthRoute from './routes/AuthRoute';
-import { Slider } from './pages/Slider.js';
+import Slider from './pages/Slider';
 
 const App = () => {
     return (
