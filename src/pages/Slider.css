@@ -1,32 +1,4 @@
-body {
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
-    background-image: linear-gradient(180deg, #7700ff 0%, rgb(68, 0, 255) 100%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.example-container {
-    width: 100vw;
-    height: 100vh;
-}
-
 .box {
-    background: white;
-    border-radius: 30px;
-    width: 25vw;
-    height: 70vh;
-    position: absolute;
     top: 10vh;
     left: 37.5vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.progress-icon {
-    width: 80%;
-    height: 80%;
 }

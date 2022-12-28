@@ -1,9 +1,17 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import {
+    motion,
+    useAnimation,
+    useMotionValue,
+    useTransform,
+} from 'framer-motion';
 import './Slider.css';
 import { containerVariants } from './variants';
+import songs from './SliderData';
+import PlayButton from '../components/PlayButton';
+import Playlist from '../components/Playlist';
 
-const Slider = (props) => {
+const Slider = () => {
     const x = useMotionValue(0);
     const xInput = [-100, 0, 100];
     const background = useTransform(x, xInput, [
@@ -11,147 +19,148 @@ const Slider = (props) => {
         'linear-gradient(180deg, #7700ff 0%, rgb(68, 0, 255) 100%)',
         'linear-gradient(180deg, rgb(230, 255, 0) 0%, rgb(3, 209, 0) 100%)',
     ]);
-    const color = useTransform(x, xInput, [
-        'rgb(211, 9, 225)',
-        'rgb(68, 0, 255)',
-        'rgb(3, 209, 0)',
-    ]);
-    const tickPath = useTransform(x, [10, 100], [0, 1]);
-    const crossPathA = useTransform(x, [-10, -55], [0, 1]);
-    const crossPathB = useTransform(x, [-50, -100], [0, 1]);
+    // const color = useTransform(x, xInput, [
+    //     'rgb(211, 9, 225)',
+    //     'rgb(68, 0, 255)',
+    //     'rgb(3, 209, 0)',
+    // ]);
+    // const tickPath = useTransform(x, [10, 100], [0, 1]);
+    // const crossPathA = useTransform(x, [-10, -55], [0, 1]);
+    // const crossPathB = useTransform(x, [-50, -100], [0, 1]);
 
-    const [successOrFailText, setSuccessOrFailText] = useState('');
-
-    const swipe = (result, song, setPoint) => {
-        setSuccessOrFailText(result);
-        setDummyData([...dummyData, song]);
-        setIsAboveRedirectLimit(true);
-
-        setTimeout(() => {
-            setSuccessOrFailText('');
-        }, 2000);
-    };
+    const [playlistData, setPlaylistData] = useState([]);
+    const [songIndex, setSongIndex] = useState(
+        Math.floor(Math.random() * (songs.tracks.length - 1)),
+    );
+    const [songPlaying, setSongPlaying] = useState(false);
+    const [songPreview, setSongPreview] = useState(
+        new Audio(songs.tracks[songIndex].preview_url),
+    );
 
     const redirectLimit = 150;
+
+    const controls = useAnimation();
+
     useEffect(() => {
-        x.onChange((latestX) => {
-            latestX >= redirectLimit &&
-                !isAboveRedirectLimit &&
-                !isDragging &&
-                swipe('Success', '1');
+        setSongPreview(new Audio(songs.tracks[songIndex].preview_url));
+    }, [songIndex]);
 
-            latestX <= -redirectLimit &&
-                !isAboveRedirectLimit &&
-                !isDragging &&
-                swipe('Failure', '0');
+    const swipe = (swipedRight) => {
+        if (Math.abs(x.get()) >= redirectLimit || swipedRight !== undefined) {
+            controls.start({
+                x:
+                    x.get() > 0 || swipedRight
+                        ? [x.get(), 500, 0]
+                        : [x.get(), -500, 0],
+                opacity: [1, 0, 0],
+                transition: {
+                    duration: 1,
+                },
+            });
 
-            Math.abs(latestX) < redirectLimit && setIsAboveRedirectLimit(false);
-        });
-    });
-
-    const [dummyData, setDummyData] = useState([]);
-    const [isDragging, setIsDragging] = useState(false);
-    const [isAboveRedirectLimit, setIsAboveRedirectLimit] = useState(false);
+            (x.get() > 0 || swipedRight) &&
+                setPlaylistData([
+                    ...playlistData,
+                    {
+                        name: songs.tracks[songIndex].name,
+                        image: songs.tracks[songIndex].album.images[2].url,
+                        artists: songs.tracks[songIndex].album.artists,
+                    },
+                ]);
+            setTimeout(() => {
+                songPreview.pause();
+                setSongPlaying(false);
+                songIndex !== songs.tracks.length - 1
+                    ? setSongIndex(songIndex + 1)
+                    : setSongIndex(0);
+                controls.start({
+                    opacity: 1,
+                    transition: {
+                        duration: 0.5,
+                    },
+                });
+            }, 1000);
+        } else {
+            controls.start({ x: 0 });
+        }
+    };
 
     return (
         <motion.div
-            className='example-container'
+            className='h-screen w-screen truncate'
             style={{ background }}
             variants={containerVariants}
             initial='hidden'
             animate='visible'
             exit='exit'>
-            <div className='flex justify-center pt-3 text-3xl'>
-                {successOrFailText}
-            </div>
-            <div className=''>
-                <motion.div
-                    className='box relative'
-                    style={{ x }}
-                    drag='x'
-                    dragConstraints={{ left: 0, right: 0 }}
-                    onDragStart={() => setIsDragging(true)}
-                    onDragEnd={() => setIsDragging(false)}>
-                    <svg className='progress-icon' viewBox='0 0 50 50'>
-                        <motion.path
-                            fill='none'
-                            strokeWidth='2'
-                            stroke={color}
-                            d='M14,26 L 22,33 L 35,16'
-                            strokeDasharray='0 1'
-                            style={{ pathLength: tickPath }}
+            <motion.div
+                className='box absolute w-1/4 h-3/4 bg-white rounded-lg'
+                animate={controls}
+                style={{ x }}
+                drag='x'
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={() => {
+                    swipe();
+                }}>
+                <div className='absolute top-5 text-center'>
+                    {' '}
+                    {songs.tracks[songIndex].name}{' '}
+                    <img
+                        className='h-2/3 w-2/3 mx-auto my-6'
+                        draggable='false'
+                        src={songs.tracks[songIndex].album.images[1].url}
+                        alt={songs.tracks[songIndex].name}
+                    />
+                    {songs.tracks[songIndex].preview_url !== null && (
+                        <PlayButton
+                            active={songPlaying}
+                            onClick={() => {
+                                songPlaying
+                                    ? songPreview.pause()
+                                    : songPreview.play();
+                                setSongPlaying(!songPlaying);
+                            }}
                         />
-                        <motion.path
-                            fill='none'
-                            strokeWidth='2'
-                            stroke={color}
-                            d='M17,17 L33,33'
-                            strokeDasharray='0 1'
-                            style={{ pathLength: crossPathA }}
-                        />
-                        <motion.path
-                            fill='none'
-                            strokeWidth='2'
-                            stroke={color}
-                            d='M33,17 L17,33'
-                            strokeDasharray='0 1'
-                            style={{ pathLength: crossPathB }}
+                    )}
+                </div>
+                <div className='absolute bottom-2 right-12'>
+                    <svg
+                        onClick={() => {
+                            swipe(true);
+                        }}
+                        xmlns='http://www.w3.org/2000/svg'
+                        class='h-12 w-12'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'>
+                        <path
+                            stroke-linecap='round'
+                            stroke-linejoin='round'
+                            stroke-width='2'
+                            d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
                         />
                     </svg>
-                    <div className='absolute bottom-5 right-12'>
-                        <svg
-                            onClick={() => {
-                                x.set(150);
-                                setTimeout(() => {
-                                    x.set(0);
-                                    setSuccessOrFailText('');
-                                }, 2000);
-                            }}
-                            xmlns='http://www.w3.org/2000/svg'
-                            class='h-12 w-12'
-                            fill='none'
-                            viewBox='0 0 24 24'
-                            stroke='currentColor'>
-                            <path
-                                stroke-linecap='round'
-                                stroke-linejoin='round'
-                                stroke-width='2'
-                                d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-                            />
-                        </svg>
-                    </div>
-                    <div className='absolute bottom-5 left-12'>
-                        <svg
-                            onClick={() => {
-                                x.set(-150);
-                                setTimeout(() => {
-                                    x.set(0);
-                                    setSuccessOrFailText('');
-                                }, 2000);
-                            }}
-                            xmlns='http://www.w3.org/2000/svg'
-                            class='h-12 w-12'
-                            fill='none'
-                            viewBox='0 0 24 24'
-                            stroke='currentColor'>
-                            <path
-                                stroke-linecap='round'
-                                stroke-linejoin='round'
-                                stroke-width='2'
-                                d='M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
-                            />
-                        </svg>
-                    </div>
-                </motion.div>
-            </div>
-            <div className='absolute right-20 inset-y-2.5'>
-                <table className=''>
-                    <th>Playlist</th>
-                    {dummyData.map((item) => {
-                        return <tr>{item}</tr>;
-                    })}
-                </table>
-            </div>
+                </div>
+                <div className='absolute bottom-2 left-12'>
+                    <svg
+                        onClick={() => {
+                            swipe(false);
+                        }}
+                        xmlns='http://www.w3.org/2000/svg'
+                        class='h-12 w-12'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'>
+                        <path
+                            stroke-linecap='round'
+                            stroke-linejoin='round'
+                            stroke-width='2'
+                            d='M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
+                        />
+                    </svg>
+                </div>
+            </motion.div>
+            <Playlist data={playlistData} />
         </motion.div>
     );
 };
