@@ -13,7 +13,7 @@ const Playlist = (props) => {
     }, [hoverArray, props.data]);
 
     return (
-        <div className='flex justify-end m-10 border-2 h-4/5 float-right bg-black text-white overflow-hidden rounded-lg'>
+        <div className='flex justify-end m-10 border-2 h-4/5 float-right bg-black text-white overflow-auto rounded-lg'>
             <ul className='p-5' id='test'>
                 <div className='font-bold text-center'>Playlist {'\n'}</div>
                 {props.data.map((item, index) => {
