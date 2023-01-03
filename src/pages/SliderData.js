@@ -838,4 +838,4 @@ const songs = {
     ],
 };
 
-export default songs;
+export { songs };

@@ -7,11 +7,18 @@ import {
 } from 'framer-motion';
 import './Slider.css';
 import { containerVariants } from './variants';
-import songs from './SliderData';
 import PlayButton from '../components/PlayButton';
 import Playlist from '../components/Playlist';
+import { songs as album } from './SliderData';
 
-const Slider = () => {
+const Slider = ({ tracks, albumImageURL }) => {
+    var songs = album;
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(false);
+    }, [loading, tracks]);
+
     const x = useMotionValue(0);
     const xInput = [-100, 0, 100];
     const background = useTransform(x, xInput, [
@@ -30,11 +37,11 @@ const Slider = () => {
 
     const [playlistData, setPlaylistData] = useState([]);
     const [songIndex, setSongIndex] = useState(
-        Math.floor(Math.random() * (songs.tracks.length - 1)),
+        Math.floor(Math.random() * (tracks.length - 1)),
     );
     const [songPlaying, setSongPlaying] = useState(false);
     const [songPreview, setSongPreview] = useState(
-        new Audio(songs.tracks[songIndex].preview_url),
+        new Audio(tracks[songIndex].preview_url),
     );
 
     const redirectLimit = 150;
@@ -42,7 +49,7 @@ const Slider = () => {
     const controls = useAnimation();
 
     useEffect(() => {
-        setSongPreview(new Audio(songs.tracks[songIndex].preview_url));
+        setSongPreview(new Audio(tracks[songIndex].preview_url));
     }, [songIndex]);
 
     const swipe = (swipedRight) => {
@@ -62,15 +69,15 @@ const Slider = () => {
                 setPlaylistData([
                     ...playlistData,
                     {
-                        name: songs.tracks[songIndex].name,
-                        image: songs.tracks[songIndex].album.images[2].url,
-                        artists: songs.tracks[songIndex].album.artists,
+                        name: tracks[songIndex].name,
+                        image: albumImageURL[2].url,
+                        artists: tracks[songIndex].artists[0].name,
                     },
                 ]);
             setTimeout(() => {
                 songPreview.pause();
                 setSongPlaying(false);
-                songIndex !== songs.tracks.length - 1
+                songIndex !== tracks.length - 1
                     ? setSongIndex(songIndex + 1)
                     : setSongIndex(0);
                 controls.start({
@@ -84,6 +91,10 @@ const Slider = () => {
             controls.start({ x: 0 });
         }
     };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <motion.div
@@ -104,14 +115,14 @@ const Slider = () => {
                 }}>
                 <div className='absolute top-5 text-center'>
                     {' '}
-                    {songs.tracks[songIndex].name}{' '}
+                    {tracks[songIndex].name}{' '}
                     <img
                         className='h-2/3 w-2/3 mx-auto my-6'
                         draggable='false'
-                        src={songs.tracks[songIndex].album.images[1].url}
-                        alt={songs.tracks[songIndex].name}
+                        src={albumImageURL[1].url}
+                        alt={tracks[songIndex].name}
                     />
-                    {songs.tracks[songIndex].preview_url !== null && (
+                    {tracks[songIndex].preview_url !== null && (
                         <PlayButton
                             active={songPlaying}
                             onClick={() => {
@@ -165,4 +176,4 @@ const Slider = () => {
     );
 };
 
-export default Slider;
+export { Slider };
